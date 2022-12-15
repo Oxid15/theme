@@ -7,7 +7,7 @@ With the least requirements possible one can get an initial dataset to train tex
 
 ## Installation
 ```bash
-pip install theme
+pip install theme-label
 ```
 
 ## Usage
