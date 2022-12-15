@@ -166,7 +166,6 @@ class Theme:
                 yield self._unmarked_indices[0]
 
     def _write(self) -> None:
-        assert all(pd.notna(self._marked['main_text']))
         self._marked.to_csv(self._marked_table, index=False)
 
     def _skip(self) -> None:
