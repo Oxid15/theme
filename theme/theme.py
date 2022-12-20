@@ -85,6 +85,11 @@ class Theme:
         The dictionary that will be used to update() meta before saving.
         Pass here any additional values that need to be included in metadata.
         Will be ignored if write_meta == False
+    cache_skipped: bool, optional
+        Whether to write cached text's ids to disk to reuse them between sessions.
+    cache_folder: str, optional
+        Where to save skipped.json file with ids of skipped texts. Used only if
+        cache_skipped == True. Default is ./.theme
     """
     def __init__(
         self,
