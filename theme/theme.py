@@ -102,7 +102,9 @@ class Theme:
         more_input: str = '',
         write_meta: bool = False,
         assessor_name: str = '',
-        meta_prefix: Union[Dict[Any, Any], None] = None
+        meta_prefix: Union[Dict[Any, Any], None] = None,
+        cache_skipped: bool = False,
+        cache_folder: str = '.theme'
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
@@ -114,6 +116,8 @@ class Theme:
         self._select_label = select_label
         self._to_write_meta = write_meta
         self._assessor_name = assessor_name
+        self._cache_skipped = cache_skipped
+        self._cache_folder = cache_folder
         if meta_prefix is not None:
             self._meta_prefix = meta_prefix
         else:
@@ -131,6 +135,12 @@ class Theme:
             self._show_cols = show_cols
 
         self._skipped = set()
+        skipped_path = os.path.join(self._cache_folder, 'skipped.json')
+        if os.path.exists(skipped_path):
+            with open(skipped_path, 'r') as f:
+                skipped = json.load(f)
+                self._skipped = set(skipped)
+
         self._marked_history = []
         self._unmarked = pd.DataFrame()
         self._marked = pd.DataFrame()
@@ -224,6 +234,11 @@ class Theme:
         index = self._unmarked_indices.pop(0)
         self._skipped.add(index)
         self._chars_showed = 0
+
+        if self._cache_skipped:
+            with open(os.path.join(self._cache_folder, 'skipped.json'), 'w') as f:
+                json.dump(list(self._skipped), f)
+
         cprint('R', 'SKIPPED')
 
     def _back(self) -> None:
@@ -277,6 +292,9 @@ class Theme:
 
         The whole marked table is saved to the disk at each iteration.
         """
+        if self._cache_skipped:
+            os.makedirs(self._cache_folder, exist_ok=True)
+
         label = None
         for i in self._sample_generator():
             if self._was_marked(i):
