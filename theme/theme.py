@@ -239,8 +239,11 @@ class Theme:
             'made_by': self._assessor_name
         }
         meta.update(self._meta_prefix)
-        with open(os.path.join(os.path.dirname(self._marked_table), 'meta.json'), 'w') as f:
-            json.dump(meta, f)
+        try:
+            with open(os.path.join(os.path.dirname(self._marked_table), 'meta.json'), 'w') as f:
+                json.dump(meta, f)
+        except Exception as e:
+            raise RuntimeError('Error while writing metadata') from e
 
     def run(self) -> None:
         """
