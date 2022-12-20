@@ -97,9 +97,12 @@ class Theme:
         self._id_col = id_col
         self._show_chars = show_chars
         self._select_label = select_label
-        self._skip_input = skip_input
-        self._back_input = back_input
-        self._more_input = more_input
+
+        self._input_map = {
+            skip_input: 'skip',
+            back_input: 'back',
+            more_input: 'more'
+        }
 
         if show_cols is None:
             self._show_cols = []
@@ -165,14 +168,8 @@ class Theme:
     def _get_user_input(self) -> str:
         while True:
             label = input()
-            if label == self._skip_input:
-                label = 'skip'
-                break
-            elif label == self._more_input:
-                label = 'more'
-                break
-            elif label == self._back_input:
-                label = 'back'
+            if label in self._input_map:
+                label = self._input_map[label]
                 break
             elif label in self._id2label:
                 break
