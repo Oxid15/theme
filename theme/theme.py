@@ -77,7 +77,10 @@ class Theme:
         id_col: str,
         show_cols: Union[List[str], None] = None,
         show_chars: int = 500,
-        select_label: Union[str, None] = None
+        select_label: Union[str, None] = None,
+        skip_input: str = ' ',
+        back_input: str = 'b',
+        more_input: str = ''
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
@@ -87,6 +90,10 @@ class Theme:
         self._id_col = id_col
         self._show_chars = show_chars
         self._select_label = select_label
+        self._skip_input = skip_input
+        self._back_input = back_input
+        self._more_input = more_input
+
         if show_cols is None:
             self._show_cols = []
         else:
@@ -96,6 +103,7 @@ class Theme:
         self._marked_history = []
         self._unmarked = pd.DataFrame()
         self._marked = pd.DataFrame()
+        self._chars_showed = 0
 
         self._load_data()
 
@@ -129,7 +137,7 @@ class Theme:
             return False
 
     def _show_options(self) -> None:
-        cprint('G', 'Enter to skip, Space and Enter to edit previous markup')
+        cprint('G', f'\"{self._skip_input}\" to skip, \"{self._back_input}\" to edit previous markup, \"{self._more_input}\" to show more text')
         cprint('G', self._id2label)
 
     def _show_menu(self, row) -> None:
@@ -145,13 +153,18 @@ class Theme:
         print('')
         print(row[self._text_col][:self._show_chars])
 
+        self._chars_showed += self._show_chars
+
     def _get_user_input(self) -> str:
         while True:
             label = input()
-            if label == '':
+            if label == self._skip_input:
                 label = 'skip'
                 break
-            elif label == ' ':
+            elif label == self._more_input:
+                label = 'more'
+                break
+            elif label == self._back_input:
                 label = 'back'
                 break
             elif label in self._id2label:
@@ -171,6 +184,7 @@ class Theme:
     def _skip(self) -> None:
         index = self._unmarked_indices.pop(0)
         self._skipped.add(index)
+        self._chars_showed = 0
         cprint('R', 'SKIPPED')
 
     def _back(self) -> None:
@@ -178,9 +192,20 @@ class Theme:
             index = self._marked_indices.pop(-1)
             self._unmarked_indices.insert(0, index)
             self._marked = self._marked[:-1]
+            self._chars_showed = 0
             cprint('R', 'BACK')
         else:
             cprint('R', 'HISTORY IS EMPTY')
+
+    def _more(self, row):
+        text = row[self._text_col]
+        start = self._chars_showed
+        end = min(self._chars_showed + self._show_chars, len(text))
+        if end <= len(text):
+            print(text[start: end])
+            self._chars_showed += self._show_chars
+        if end == len(text):
+            cprint('R', 'END')
 
     def run(self) -> None:
         """
@@ -202,6 +227,7 @@ class Theme:
 
         The whole marked table is saved to the disk at each iteration.
         """
+        label = None
         for i in self._sample_generator():
             if self._was_marked(i):
                 continue
@@ -210,7 +236,11 @@ class Theme:
                 continue
 
             row = self._unmarked.iloc[i].copy(deep=True)
-            self._show_menu(row)
+
+            # If label got in previous cycle is more
+            # don't show initial parts of the text
+            if label != 'more':
+                self._show_menu(row)
             label = self._get_user_input()
 
             if label == 'skip':
@@ -219,6 +249,8 @@ class Theme:
             elif label == 'back':
                 self._back()
                 continue
+            elif label == 'more':
+                self._more(row)
             else:
                 row[self._label_col] = self._id2label[label]
                 self._marked = pd.concat((self._marked, pd.DataFrame([row])))
