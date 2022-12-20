@@ -61,11 +61,18 @@ class Theme:
     id_col: str
         The column with which texts can be identified
     show_cols: Union[List[str], None], optional
-        Additional columns that should be presented when labeling. For example `title`.
+        Additional columns that should be presented when labeling. For example `title`
     show_chars: int, default 500
         How many characters of the text to show from the first one
     select_label: Union[str, None], optional
-        If data is prelabeled can select some values using `label_col`.
+        If data is prelabeled can select some values using `label_col`
+    skip_input: str, default " "
+        The character that user should write to skip the text
+    back_input: str, default "b"
+        The character that user should write to edit previous label
+    more_input: str, default ""
+        The character that user should write to print more text,
+        prints `show_chars` characters until the end of text
     """
     def __init__(
         self,
@@ -197,7 +204,7 @@ class Theme:
         else:
             cprint('R', 'HISTORY IS EMPTY')
 
-    def _more(self, row):
+    def _more(self, row) -> None:
         text = row[self._text_col]
         start = self._chars_showed
         end = min(self._chars_showed + self._show_chars, len(text))
@@ -219,11 +226,9 @@ class Theme:
         Finally there are some additional user-defined fields and the text to label itself.
         The user is prompted to choose the label.
 
-        If entered label is empty, then the text is marked as skipped and will not appear in this
-        session.
-        If entered label is space, then the previous markedtext is prompted
-        instread of current one.
         If the label is not in the `id2label`  the user is prompted to enter the label again.
+        User can skip, edit previous label or request more characters from text using commands
+        that are determined by the `__init__` parameters.
 
         The whole marked table is saved to the disk at each iteration.
         """
