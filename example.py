@@ -13,8 +13,7 @@ t = Theme(
     unmarked_table='data.csv',
     marked_table='markup.csv',
     label_col='label',
-    id_col='Unnamed: 0',
-    select_label=None
+    id_col='Unnamed: 0'
 )
 
 t.run()
