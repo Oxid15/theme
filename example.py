@@ -13,7 +13,11 @@ t = Theme(
     unmarked_table='data.csv',
     marked_table='markup.csv',
     label_col='label',
-    id_col='Unnamed: 0'
+    id_col='Unnamed: 0',
+    select_label=None,
+    write_meta=True,
+    assessor_name='Ilia Moiseev',
+    meta_prefix={'labeling_goal': 'Generate initial dataset'}
 )
 
 t.run()

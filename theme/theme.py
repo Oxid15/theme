@@ -1,4 +1,7 @@
 import os
+import json
+from datetime import datetime
+from dateutil import tz
 from typing import Union, Dict, List, Generator, Any
 
 import pandas as pd
@@ -73,6 +76,15 @@ class Theme:
     more_input: str, default ""
         The character that user should write to print more text,
         prints `show_chars` characters until the end of text
+    write_meta: bool, optional
+        Whether to write JSON metadata file
+    assessor_name: str, optional
+        Name of the person doing labeling that will be included in the metadata.
+        Will be ignored if write_meta == False
+    meta_prefix: dict, optional
+        The dictionary that will be used to update() meta before saving.
+        Pass here any additional values that need to be included in metadata.
+        Will be ignored if write_meta == False
     """
     def __init__(
         self,
@@ -87,7 +99,10 @@ class Theme:
         select_label: Union[str, None] = None,
         skip_input: str = ' ',
         back_input: str = 'b',
-        more_input: str = ''
+        more_input: str = '',
+        write_meta: bool = False,
+        assessor_name: str = '',
+        meta_prefix: Union[Dict[Any, Any], None] = None
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
@@ -97,6 +112,12 @@ class Theme:
         self._id_col = id_col
         self._show_chars = show_chars
         self._select_label = select_label
+        self._to_write_meta = write_meta
+        self._assessor_name = assessor_name
+        if meta_prefix is not None:
+            self._meta_prefix = meta_prefix
+        else:
+            meta_prefix = {}
 
         self._input_map = {
             skip_input: 'skip',
@@ -147,7 +168,7 @@ class Theme:
             return False
 
     def _show_options(self) -> None:
-        cprint('G', f'\"{self._skip_input}\" to skip, \"{self._back_input}\" to edit previous markup, \"{self._more_input}\" to show more text')
+        cprint('G', self._input_map)
         cprint('G', self._id2label)
 
     def _show_menu(self, row) -> None:
@@ -211,6 +232,16 @@ class Theme:
         if end == len(text):
             cprint('R', 'END')
 
+    def _write_meta(self):
+        meta = {
+            'saved_at': str(datetime.now(tz=tz.gettz('UTC'))),
+            'size': len(self._marked),
+            'made_by': self._assessor_name
+        }
+        meta.update(self._meta_prefix)
+        with open(os.path.join(os.path.dirname(self._marked_table), 'meta.json'), 'w') as f:
+            json.dump(meta, f)
+
     def run(self) -> None:
         """
         Method that runs the labeling process.
@@ -257,6 +288,8 @@ class Theme:
                 row[self._label_col] = self._id2label[label]
                 self._marked = pd.concat((self._marked, pd.DataFrame([row])))
                 self._write()
+                if self._to_write_meta:
+                    self._write_meta()
 
                 index = self._unmarked_indices.pop(0)
                 self._marked_indices.append(index)
