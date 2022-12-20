@@ -1,4 +1,6 @@
 # theme
+![ver](https://img.shields.io/github/v/release/oxid15/theme?style=plastic)  
+    
 Simple CLI labeling tool for text classification
 
 It allows to rapidly acquire manually labeled texts without the need to setup any large-scale labeling solution.
@@ -36,7 +38,6 @@ t = Theme(
     marked_table='markup.csv', # Output table will have same columns with additional one for label
     label_col='label', # The name of additional column
     id_col='id', # The name of id column
-    select_label=None # If you already have labels in label_col and want to relabel some label
 )
 
 # Here labeling session is run
@@ -50,6 +51,13 @@ The info on number of already marked, unmarked and skipped presented to the user
 
 Finally there are some additional user-defined fields and the text to label. The user is prompted to choose the label.
 
-If entered label is *empty*, then the text is marked as skipped and will not appear in this session.  
-If entered label is *space*, then the previous markedtext is prompted instread of current one.  
+If entered label is *space*, then the text is marked as skipped and will not appear in this session.  
+If entered label is *b*, then previous marked text is prompted instead of current one.  
+If entered label is *empty* the user is provided with another portion of the same text.
 If the label is not in the `id2label` the user is prompted to enter the label again.
+
+Commands can be reassigned using parameters, see docstring.
+
+
+## Advanced usage
+See `theme/theme.py` for documentation.
