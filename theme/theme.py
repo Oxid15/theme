@@ -126,7 +126,7 @@ class Theme:
         if meta_prefix is not None:
             self._meta_prefix = meta_prefix
         else:
-            meta_prefix = {}
+            self._meta_prefix = {}
 
         self._input_map = {
             skip_input: 'skip',
