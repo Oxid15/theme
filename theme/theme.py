@@ -52,17 +52,17 @@ class Theme:
         For example with {'0': 'ham', '1': 'spam'} the user
         will be prompted to type 0 or 1 and the table will receive
         'ham' and 'spam' strings.
-    text_col: str
-        The name of the column where the text that will be labeled is stored
     unmarked_table: str
         Path to the .csv file where the texts are stored
     marked_table: str
         Path to the .csv file where marked texts will be stored. Creates new
         if does not exist.
-    label_col: str
-        The column name where labels should be written
     id_col: str
         The column with which texts can be identified
+    text_col: str
+        The name of the column where the text that will be labeled is stored
+    label_col: str
+        The column name where labels should be written
     show_cols: Union[List[str], None], optional
         Additional columns that should be presented when labeling. For example `title`
     show_chars: int, default 500
@@ -94,11 +94,11 @@ class Theme:
     def __init__(
         self,
         id2label: Dict[str, Any],
-        text_col: str,
         unmarked_table: str,
         marked_table: str,
-        label_col: str,
         id_col: str,
+        text_col: str,
+        label_col: str,
         show_cols: Union[List[str], None] = None,
         show_chars: int = 500,
         select_label: Union[str, None] = None,
