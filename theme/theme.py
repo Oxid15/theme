@@ -213,7 +213,7 @@ class Theme:
         print('')
         print(row[self._text_col][:self._show_chars])
 
-        self._chars_showed += self._show_chars
+        self._chars_showed += min(len(row[self._text_col]), self._show_chars)
 
     def _get_user_input(self) -> str:
         while True:
@@ -259,12 +259,13 @@ class Theme:
     def _more(self, row) -> None:
         text = row[self._text_col]
         start = self._chars_showed
-        end = min(self._chars_showed + self._show_chars, len(text))
-        if end <= len(text):
-            print(text[start: end])
-            self._chars_showed += self._show_chars
-        if end == len(text):
+        end = min(start + self._show_chars, len(text) - 1)
+
+        if start == len(text) - 1:
             cprint('R', 'END')
+        elif end <= len(text):
+            print(text[start:end])
+            self._chars_showed = end
 
     def _write_meta(self):
         meta = {
