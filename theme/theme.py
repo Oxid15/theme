@@ -303,9 +303,11 @@ class Theme:
         label = None
         for i in self._sample_generator():
             if self._was_marked(i):
+                self._unmarked_indices.pop(0)
                 continue
 
             if self._was_skipped(i):
+                self._unmarked_indices.pop(0)
                 continue
 
             row = self._unmarked.iloc[i].copy(deep=True)
