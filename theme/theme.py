@@ -184,10 +184,11 @@ class Theme:
 
         self._cache = {unmarked_filename: {'skipped': []}}
 
-        cache_path = os.path.join(self._cache_folder, 'cache.json')
-        if os.path.exists(cache_path):
-            with open(cache_path, 'r') as f:
-                self._cache = json.load(f)
+        if self._cache_skipped:
+            cache_path = os.path.join(self._cache_folder, 'cache.json')
+            if os.path.exists(cache_path):
+                with open(cache_path, 'r') as f:
+                    self._cache = json.load(f)
 
         if unmarked_filename not in self._cache:
             self._cache[unmarked_filename] = {'skipped': []}
