@@ -222,11 +222,17 @@ class Theme:
         print('')
         if self._show_cols is not None:
             for i, col in enumerate(self._show_cols):
-                print(f'{col}: {row[col]}')
+                if pd.notna(row[col]):
+                    print(f'{col}: {row[col]}')
+                else:
+                    cprint('R', f'{col}: NaN')
         print('')
-        print(row[self._text_col][:self._show_chars])
 
-        self._chars_showed += min(len(row[self._text_col]), self._show_chars)
+        if pd.notna(row[self._text_col]):
+            print(row[self._text_col][:self._show_chars])
+            self._chars_showed += min(len(row[self._text_col]), self._show_chars)
+        else:
+            cprint('R', 'EMPTY TEXT')
 
     def _get_user_input(self) -> str:
         while True:
@@ -270,15 +276,18 @@ class Theme:
             cprint('R', 'HISTORY IS EMPTY')
 
     def _more(self, row) -> None:
-        text = row[self._text_col]
-        start = self._chars_showed
-        end = min(start + self._show_chars, len(text) - 1)
+        if pd.notna(row[self._text_col]):
+            text = row[self._text_col]
+            start = self._chars_showed
+            end = min(start + self._show_chars, len(text) - 1)
 
-        if start == len(text) - 1:
-            cprint('R', 'END')
-        elif end <= len(text):
-            print(text[start:end])
-            self._chars_showed = end
+            if start == len(text) - 1:
+                cprint('R', 'END')
+            elif end <= len(text):
+                print(text[start:end])
+                self._chars_showed = end
+        else:
+            cprint('R', 'CAN\'T SHOW MORE')
 
     def _write_meta(self):
         meta = {
