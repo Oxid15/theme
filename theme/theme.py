@@ -88,7 +88,7 @@ class Theme:
     cache_skipped: bool, optional
         Whether to write cached text's ids to disk to reuse them between sessions.
     cache_folder: str, optional
-        Where to save skipped.json file with ids of skipped texts. Used only if
+        Where to save cache.json file with ids of skipped texts. Used only if
         cache_skipped == True. Default is ./.theme
     """
     def __init__(
@@ -139,12 +139,7 @@ class Theme:
         else:
             self._show_cols = show_cols
 
-        self._skipped = set()
-        skipped_path = os.path.join(self._cache_folder, 'skipped.json')
-        if os.path.exists(skipped_path):
-            with open(skipped_path, 'r') as f:
-                skipped = json.load(f)
-                self._skipped = set(skipped)
+        self._initialize_cache()
 
         self._marked_history = []
         self._unmarked = pd.DataFrame()
@@ -183,6 +178,24 @@ class Theme:
             self._marked = pd.read_csv(self._marked_table)
         else:
             self._marked = pd.DataFrame(columns=self._unmarked.columns)
+
+    def _initialize_cache(self) -> None:
+        unmarked_filename = os.path.split(self._unmarked_table)[-1]
+
+        self._cache = {unmarked_filename: {'skipped': []}}
+
+        cache_path = os.path.join(self._cache_folder, 'cache.json')
+        if os.path.exists(cache_path):
+            with open(cache_path, 'r') as f:
+                self._cache = json.load(f)
+
+        if unmarked_filename not in self._cache:
+            self._cache[unmarked_filename] = {'skipped': []}
+
+        if 'skipped' not in self._cache[unmarked_filename]:
+            self._cache[unmarked_filename]['skipped'] = []
+
+        self._skipped = self._cache[unmarked_filename]['skipped']
 
     def _was_marked(self, i) -> bool:
         if self._unmarked[self._id_col][i] in self._marked[self._id_col]:
@@ -237,12 +250,12 @@ class Theme:
 
     def _skip(self) -> None:
         index = self._unmarked_indices.pop(0)
-        self._skipped.add(index)
+        self._skipped.append(index)
         self._chars_showed = 0
 
         if self._cache_skipped:
-            with open(os.path.join(self._cache_folder, 'skipped.json'), 'w') as f:
-                json.dump(list(self._skipped), f)
+            with open(os.path.join(self._cache_folder, 'cache.json'), 'w') as f:
+                json.dump(self._cache, f)
 
         cprint('R', 'SKIPPED')
 
