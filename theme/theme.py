@@ -78,9 +78,6 @@ class Theme:
         prints `show_chars` characters until the end of text
     write_meta: bool, optional
         Whether to write JSON metadata file
-    assessor_name: str, optional
-        Name of the person doing labeling that will be included in the metadata.
-        Will be ignored if write_meta == False
     meta_prefix: dict, optional
         The dictionary that will be used to update() meta before saving.
         Pass here any additional values that need to be included in metadata.
@@ -106,7 +103,6 @@ class Theme:
         back_input: str = 'b',
         more_input: str = '',
         write_meta: bool = False,
-        assessor_name: str = '',
         meta_prefix: Union[Dict[Any, Any], None] = None,
         cache_skipped: bool = False,
         cache_folder: str = '.theme'
@@ -120,7 +116,6 @@ class Theme:
         self._show_chars = show_chars
         self._select_label = select_label
         self._to_write_meta = write_meta
-        self._assessor_name = assessor_name
         self._cache_skipped = cache_skipped
         self._cache_folder = cache_folder
         if meta_prefix is not None:
@@ -293,8 +288,7 @@ class Theme:
     def _write_meta(self):
         meta = {
             'saved_at': str(datetime.now(tz=tz.gettz('UTC'))),
-            'size': len(self._marked),
-            'made_by': self._assessor_name
+            'size': len(self._marked)
         }
         meta.update(self._meta_prefix)
         try:
