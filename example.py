@@ -16,7 +16,6 @@ t = Theme(
     show_cols=['title'],
     select_label=None,
     write_meta=True,
-    assessor_name='Ilia Moiseev',
     meta_prefix={'labeling_goal': 'Generate initial dataset'},
     cache_skipped=True
 )
