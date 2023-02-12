@@ -246,6 +246,8 @@ class Theme:
         while True:
             if len(self._unmarked_indices) > 0:
                 yield self._unmarked_indices[0]
+            else:
+                break
 
     def _write(self) -> None:
         self._marked.to_csv(self._marked_table, index=False)
