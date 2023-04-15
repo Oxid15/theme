@@ -4,8 +4,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="theme",
-    version='0.2.0',
+    name="theme-label",
+    version='0.2.1',
     author='Ilia Moiseev',
     author_email='ilia.moiseev.5@yandex.ru',
     license='MIT',
