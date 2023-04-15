@@ -9,14 +9,14 @@ import numpy as np
 
 
 colors = {
-    'K': '\x1B[3om',
-    'R': '\x1B[31m',
-    'G': '\x1B[32m',
-    'Y': '\x1B[33m',
-    'B': '\x1B[34m',
-    'M': '\x1B[35m',
-    'C': '\x1B[36m',
-    'W': '\x1B[37m'
+    "K": "\x1B[3om",
+    "R": "\x1B[31m",
+    "G": "\x1B[32m",
+    "Y": "\x1B[33m",
+    "B": "\x1B[34m",
+    "M": "\x1B[35m",
+    "C": "\x1B[36m",
+    "W": "\x1B[37m",
 }
 
 
@@ -33,9 +33,9 @@ def cprint(color: str, *args: Any, **kwargs: Any):
     **kwargs: Any
         regular print arguments
     """
-    print(colors[color], end='')
+    print(colors[color], end="")
     print(*args, **kwargs)
-    print(colors['W'], end='')
+    print(colors["W"], end="")
 
 
 class Theme:
@@ -88,6 +88,7 @@ class Theme:
         Where to save cache.json file with ids of skipped texts. Used only if
         cache_skipped == True. Default is ./.theme
     """
+
     def __init__(
         self,
         id2label: Dict[str, Any],
@@ -99,13 +100,13 @@ class Theme:
         show_cols: Union[List[str], None] = None,
         show_chars: int = 500,
         select_label: Union[str, None] = None,
-        skip_input: str = ' ',
-        back_input: str = 'b',
-        more_input: str = '',
+        skip_input: str = " ",
+        back_input: str = "b",
+        more_input: str = "",
         write_meta: bool = False,
         meta_prefix: Union[Dict[Any, Any], None] = None,
         cache_skipped: bool = False,
-        cache_folder: str = '.theme'
+        cache_folder: str = ".theme",
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
@@ -123,11 +124,7 @@ class Theme:
         else:
             self._meta_prefix = {}
 
-        self._input_map = {
-            skip_input: 'skip',
-            back_input: 'back',
-            more_input: 'more'
-        }
+        self._input_map = {skip_input: "skip", back_input: "back", more_input: "more"}
 
         if show_cols is None:
             self._show_cols = []
@@ -154,8 +151,8 @@ class Theme:
         for inp in self._id2label:
             if inp in self._input_map:
                 raise ValueError(
-                    f'\'{inp}\' string from id2label already present in commands. '
-                    f'Either change the \'{self._input_map[inp]}\' command or a value in id2label'
+                    f"'{inp}' string from id2label already present in commands. "
+                    f"Either change the '{self._input_map[inp]}' command or a value in id2label"
                 )
 
         missing_cols = []
@@ -165,18 +162,21 @@ class Theme:
 
         if len(missing_cols):
             raise ValueError(
-                f'{missing_cols} from id2label not in the table columns: {list(self._unmarked.columns)}')
+                f"{missing_cols} from id2label not in the table columns: {list(self._unmarked.columns)}"
+            )
 
         for inp in self._id2label:
             if not isinstance(inp, str):
                 raise ValueError(
-                    f'{inp} in id2label is not string. Please, pass values that the user will type as strings'
+                    f"{inp} in id2label is not string. Please, pass values that the user will type as strings"
                 )
 
     def _load_data(self) -> None:
         self._unmarked = pd.read_csv(self._unmarked_table)
         if self._label_col in self._unmarked and self._select_label is not None:
-            self._unmarked = self._unmarked[self._unmarked[self._label_col] == self._select_label]
+            self._unmarked = self._unmarked[
+                self._unmarked[self._label_col] == self._select_label
+            ]
         else:
             self._unmarked[self._label_col] = None
 
@@ -188,21 +188,21 @@ class Theme:
     def _initialize_cache(self) -> None:
         unmarked_filename = os.path.split(self._unmarked_table)[-1]
 
-        self._cache = {unmarked_filename: {'skipped': []}}
+        self._cache = {unmarked_filename: {"skipped": []}}
 
         if self._cache_skipped:
-            cache_path = os.path.join(self._cache_folder, 'cache.json')
+            cache_path = os.path.join(self._cache_folder, "cache.json")
             if os.path.exists(cache_path):
-                with open(cache_path, 'r') as f:
+                with open(cache_path, "r") as f:
                     self._cache = json.load(f)
 
         if unmarked_filename not in self._cache:
-            self._cache[unmarked_filename] = {'skipped': []}
+            self._cache[unmarked_filename] = {"skipped": []}
 
-        if 'skipped' not in self._cache[unmarked_filename]:
-            self._cache[unmarked_filename]['skipped'] = []
+        if "skipped" not in self._cache[unmarked_filename]:
+            self._cache[unmarked_filename]["skipped"] = []
 
-        self._skipped = self._cache[unmarked_filename]['skipped']
+        self._skipped = self._cache[unmarked_filename]["skipped"]
 
     def _was_marked(self, i) -> bool:
         if self._unmarked[self._id_col][i] in self._marked[self._id_col]:
@@ -217,29 +217,29 @@ class Theme:
             return False
 
     def _show_options(self) -> None:
-        cprint('G', self._input_map)
-        cprint('G', self._id2label)
+        cprint("G", self._input_map)
+        cprint("G", self._id2label)
 
     def _show_menu(self, row) -> None:
-        print('')
-        cprint('G', f'Marked: {len(self._marked)}')
-        cprint('G', f'Unmarked: {len(self._unmarked)}')
-        cprint('G', f'Skipped: {len(self._skipped)}')
+        print("")
+        cprint("G", f"Marked: {len(self._marked)}")
+        cprint("G", f"Unmarked: {len(self._unmarked)}")
+        cprint("G", f"Skipped: {len(self._skipped)}")
         self._show_options()
-        print('')
+        print("")
         if self._show_cols is not None:
             for i, col in enumerate(self._show_cols):
                 if pd.notna(row[col]):
-                    print(f'{col}: {row[col]}')
+                    print(f"{col}: {row[col]}")
                 else:
-                    cprint('R', f'{col}: NaN')
-        print('')
+                    cprint("R", f"{col}: NaN")
+        print("")
 
         if pd.notna(row[self._text_col]):
-            print(row[self._text_col][:self._show_chars])
+            print(row[self._text_col][: self._show_chars])
             self._chars_showed += min(len(row[self._text_col]), self._show_chars)
         else:
-            cprint('R', 'EMPTY TEXT')
+            cprint("R", "EMPTY TEXT")
 
     def _get_user_input(self) -> str:
         while True:
@@ -269,10 +269,10 @@ class Theme:
         self._chars_showed = 0
 
         if self._cache_skipped:
-            with open(os.path.join(self._cache_folder, 'cache.json'), 'w') as f:
+            with open(os.path.join(self._cache_folder, "cache.json"), "w") as f:
                 json.dump(self._cache, f)
 
-        cprint('R', 'SKIPPED')
+        cprint("R", "SKIPPED")
 
     def _back(self) -> None:
         if len(self._marked_indices) > 0:
@@ -280,9 +280,9 @@ class Theme:
             self._unmarked_indices.insert(0, index)
             self._marked = self._marked[:-1]
             self._chars_showed = 0
-            cprint('R', 'BACK')
+            cprint("R", "BACK")
         else:
-            cprint('R', 'HISTORY IS EMPTY')
+            cprint("R", "HISTORY IS EMPTY")
 
     def _more(self, row) -> None:
         if pd.notna(row[self._text_col]):
@@ -291,27 +291,29 @@ class Theme:
             end = min(start + self._show_chars, len(text))
 
             if start == len(text):
-                cprint('R', 'END')
+                cprint("R", "END")
             elif end <= len(text):
                 print(text[start:end])
                 self._chars_showed = end
         else:
-            cprint('R', 'CAN\'T SHOW MORE')
+            cprint("R", "CAN'T SHOW MORE")
 
     def _write_meta(self):
         labels, counts = np.unique(self._marked[self._label_col], return_counts=True)
 
         meta = {
-            'saved_at': str(datetime.now(tz=tz.gettz('UTC'))),
-            'size': len(self._marked),
-            'labels': {l: int(c) for l, c in zip(labels, counts)}
+            "saved_at": str(datetime.now(tz=tz.gettz("UTC"))),
+            "size": len(self._marked),
+            "labels": {l: int(c) for l, c in zip(labels, counts)},
         }
         meta.update(self._meta_prefix)
         try:
-            with open(os.path.join(os.path.dirname(self._marked_table), 'meta.json'), 'w') as f:
+            with open(
+                os.path.join(os.path.dirname(self._marked_table), "meta.json"), "w"
+            ) as f:
                 json.dump(meta, f)
         except Exception as e:
-            raise RuntimeError('Error while writing metadata') from e
+            raise RuntimeError("Error while writing metadata") from e
 
     def run(self) -> None:
         """
@@ -348,17 +350,17 @@ class Theme:
 
             # If label got in previous cycle is more
             # don't show initial parts of the text
-            if label != 'more':
+            if label != "more":
                 self._show_menu(row)
             label = self._get_user_input()
 
-            if label == 'skip':
+            if label == "skip":
                 self._skip()
                 continue
-            elif label == 'back':
+            elif label == "back":
                 self._back()
                 continue
-            elif label == 'more':
+            elif label == "more":
                 self._more(row)
             else:
                 row[self._label_col] = self._id2label[label]
@@ -370,4 +372,4 @@ class Theme:
                 index = self._unmarked_indices.pop(0)
                 self._marked_indices.append(index)
 
-        print('All marked')
+        print("All marked")
