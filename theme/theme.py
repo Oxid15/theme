@@ -299,9 +299,12 @@ class Theme:
             cprint('R', 'CAN\'T SHOW MORE')
 
     def _write_meta(self):
+        labels, counts = np.unique(self._marked[self._label_col], return_counts=True)
+
         meta = {
             'saved_at': str(datetime.now(tz=tz.gettz('UTC'))),
-            'size': len(self._marked)
+            'size': len(self._marked),
+            'labels': {l: c for l, c in zip(labels, counts)}
         }
         meta.update(self._meta_prefix)
         try:
