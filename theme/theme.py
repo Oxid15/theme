@@ -151,15 +151,26 @@ class Theme:
         self._check_values()
 
     def _check_values(self) -> None:
-        for col in self._show_cols + [self._text_col, self._id_col]:
-            if col not in self._unmarked:
-                raise ValueError(
-                    f'\'{col}\' not in the table columns: {list(self._unmarked.columns)}')
         for inp in self._id2label:
             if inp in self._input_map:
                 raise ValueError(
                     f'\'{inp}\' string from id2label already present in commands. '
                     f'Either change the \'{self._input_map[inp]}\' command or a value in id2label'
+                )
+
+        missing_cols = []
+        for col in self._show_cols + [self._text_col, self._id_col]:
+            if col not in self._unmarked:
+                missing_cols.append(col)
+
+        if len(missing_cols):
+            raise ValueError(
+                f'{missing_cols} from id2label not in the table columns: {list(self._unmarked.columns)}')
+
+        for inp in self._id2label:
+            if not isinstance(inp, str):
+                raise ValueError(
+                    f'{inp} in id2label is not string. Please, pass values that the user will type as strings'
                 )
 
     def _load_data(self) -> None:
