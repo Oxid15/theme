@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from datetime import datetime
 from dateutil import tz
 from typing import Union, Dict, List, Generator, Any
@@ -107,6 +108,8 @@ class Theme:
         meta_prefix: Union[Dict[Any, Any], None] = None,
         cache_skipped: bool = False,
         cache_folder: str = ".theme",
+        label_session_minutes: Union[int, None] = None,
+        break_minutes: Union[int, None] = None,
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
@@ -119,6 +122,13 @@ class Theme:
         self._to_write_meta = write_meta
         self._cache_skipped = cache_skipped
         self._cache_folder = cache_folder
+
+        if not (label_session_minutes and break_minutes):
+            raise ValueError(f"")  # TODO: error msg
+
+        self._label_session_minutes = label_session_minutes
+        self._break_minutes = break_minutes
+
         if meta_prefix is not None:
             self._meta_prefix = meta_prefix
         else:
@@ -144,6 +154,10 @@ class Theme:
         np.random.shuffle(self._unmarked_indices)
 
         self._marked_indices = []
+        self._session_start = None
+        self._current_start = None
+        self._current_duration_min = 0
+        self._is_break = False
 
         self._check_values()
 
@@ -298,6 +312,24 @@ class Theme:
         else:
             cprint("R", "CAN'T SHOW MORE")
 
+    def _set_current_mode(self):
+        self._current_duration_min = (time.time() - self._current_start) / 60
+
+        limit_min = (
+            self._label_session_minutes if not self._is_break else self._break_minutes
+        )
+        if self._current_duration_min >= limit_min:
+            self._is_break = True if not self._is_break else False
+            self._current_start = time.time()
+            self._current_duration_min = 0
+
+    def _break(self):
+        end_sec = self._current_start + self._break_minutes * 60
+        remaining_sec = end_sec - time.time()
+        rem_min, rem_sec = int(remaining_sec // 60), int(remaining_sec % 60)
+        cprint("R", f"BREAK for {rem_min}m {rem_sec}s")
+        input()
+
     def _write_meta(self):
         labels, counts = np.unique(self._marked[self._label_col], return_counts=True)
 
@@ -336,8 +368,17 @@ class Theme:
         if self._cache_skipped:
             os.makedirs(self._cache_folder, exist_ok=True)
 
+        self._session_start = time.time()
+        self._current_start = time.time()
+
         label = None
         for i in self._sample_generator():
+            if self._label_session_minutes is not None:
+                self._set_current_mode()
+                if self._is_break:
+                    self._break()
+                    continue
+
             if self._was_marked(i):
                 self._unmarked_indices.pop(0)
                 continue
