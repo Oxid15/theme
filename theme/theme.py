@@ -304,7 +304,7 @@ class Theme:
         meta = {
             'saved_at': str(datetime.now(tz=tz.gettz('UTC'))),
             'size': len(self._marked),
-            'labels': {l: c for l, c in zip(labels, counts)}
+            'labels': {l: int(c) for l, c in zip(labels, counts)}
         }
         meta.update(self._meta_prefix)
         try:
