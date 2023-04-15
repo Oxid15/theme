@@ -277,9 +277,9 @@ class Theme:
         if pd.notna(row[self._text_col]):
             text = row[self._text_col]
             start = self._chars_showed
-            end = min(start + self._show_chars, len(text) - 1)
+            end = min(start + self._show_chars, len(text))
 
-            if start == len(text) - 1:
+            if start == len(text):
                 cprint('R', 'END')
             elif end <= len(text):
                 print(text[start:end])
