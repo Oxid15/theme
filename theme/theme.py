@@ -202,10 +202,10 @@ class Theme:
         if not isinstance(self._break_minutes, int):
             raise ValueError(f"break_minutes should be int, got {type(self._break_minutes)}")
         
-        if self._label_session_minutes > 1:
+        if self._label_session_minutes < 1:
             raise ValueError(f"label_session_minutes should be > 1, got {self._label_session_minutes}")
 
-        if self._break_minutes > 1:
+        if self._break_minutes < 1:
             raise ValueError(f"break_minutes should be > 1, got {self._break_minutes}")
 
     def _load_data(self) -> None:
