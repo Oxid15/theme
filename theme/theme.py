@@ -159,11 +159,11 @@ class Theme:
         random.shuffle(self._unmarked_indices)
 
         self._marked_indices = []
+        self._action_history = []
         self._session_start = None
         self._current_start = None
         self._current_duration_min = 0
         self._is_break = False
-        self._previous_decision = None
 
         self._check_values()
 
@@ -305,7 +305,7 @@ class Theme:
                 break
 
     def _write(self) -> None:
-        self._previous_decision = "write"
+        self._action_history.append("write")
         self._marked.to_csv(self._marked_table, index=False)
 
     def _write_skipped_cache(self):
@@ -313,7 +313,7 @@ class Theme:
             json.dump(self._cache, f)
 
     def _skip(self) -> None:
-        self._previous_decision = "skip"
+        self._action_history.append("skip")
         index = self._unmarked_indices.pop(0)
         self._skipped.append(index)
         self._chars_showed = 0
@@ -324,26 +324,25 @@ class Theme:
         cprint("R", "SKIPPED")
 
     def _back(self) -> None:
-        if self._previous_decision == "skip":
-            if len(self._skipped) > 0:
-                index = self._skipped.pop(-1)
-                self._unmarked_indices.insert(0, index)
-                self._chars_showed = 0
-                self._write_skipped_cache()
-                cprint("R", "BACK")
-            else:
-                cprint("R", "HISTORY IS EMPTY")
-        elif self._previous_decision == "write":
-            if len(self._marked_indices) > 0:
-                index = self._marked_indices.pop(-1)
-                self._unmarked_indices.insert(0, index)
-                self._marked = self._marked[:-1]
-                self._chars_showed = 0
-                cprint("R", "BACK")
-            else:
-                cprint("R", "HISTORY IS EMPTY")
-        else:
+        if len(self._action_history) == 0:
             cprint("R", "HISTORY IS EMPTY")
+            return
+
+        previous_decision = self._action_history.pop(-1)
+        if previous_decision == "skip":
+            index = self._skipped.pop(-1)
+            self._unmarked_indices.insert(0, index)
+            self._chars_showed = 0
+            self._write_skipped_cache()
+            cprint("R", "BACK")
+        elif previous_decision == "write":
+            index = self._marked_indices.pop(-1)
+            self._unmarked_indices.insert(0, index)
+            self._marked = self._marked[:-1]
+            self._chars_showed = 0
+            cprint("R", "BACK")
+        else:
+            raise RuntimeError(f"Unknown decision {previous_decision}")
 
     def _more(self, row) -> None:
         if pd.notna(row[self._text_col]):
