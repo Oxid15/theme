@@ -1,8 +1,9 @@
 import os
 import json
+import time
 from datetime import datetime
 from dateutil import tz
-from typing import Union, Dict, List, Generator, Any
+from typing import Dict, List, Generator, Any, Optional
 
 import pandas as pd
 import numpy as np
@@ -87,6 +88,15 @@ class Theme:
     cache_folder: str, optional
         Where to save cache.json file with ids of skipped texts. Used only if
         cache_skipped == True. Default is ./.theme
+    label_session_minutes: int, optional
+        The number of minutes the user is allowed to do labeling until break
+    break_minutes: int, optional
+        The number of minutes the user will not be allowed to do labeling until
+        new labeling session starts
+
+    Raises
+    ------
+    ValueError: if parameter validation changed
     """
 
     def __init__(
@@ -97,16 +107,18 @@ class Theme:
         id_col: str,
         text_col: str,
         label_col: str,
-        show_cols: Union[List[str], None] = None,
+        show_cols: Optional[List[str]] = None,
         show_chars: int = 500,
-        select_label: Union[str, None] = None,
+        select_label: Optional[str] = None,
         skip_input: str = " ",
         back_input: str = "b",
         more_input: str = "",
         write_meta: bool = False,
-        meta_prefix: Union[Dict[Any, Any], None] = None,
+        meta_prefix: Optional[Dict[Any, Any]] = None,
         cache_skipped: bool = False,
         cache_folder: str = ".theme",
+        label_session_minutes: Optional[int] = None,
+        break_minutes: Optional[int] = None,
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
@@ -119,6 +131,9 @@ class Theme:
         self._to_write_meta = write_meta
         self._cache_skipped = cache_skipped
         self._cache_folder = cache_folder
+        self._label_session_minutes = label_session_minutes
+        self._break_minutes = break_minutes
+
         if meta_prefix is not None:
             self._meta_prefix = meta_prefix
         else:
@@ -144,6 +159,10 @@ class Theme:
         np.random.shuffle(self._unmarked_indices)
 
         self._marked_indices = []
+        self._session_start = None
+        self._current_start = None
+        self._current_duration_min = 0
+        self._is_break = False
 
         self._check_values()
 
@@ -170,6 +189,24 @@ class Theme:
                 raise ValueError(
                     f"{inp} in id2label is not string. Please, pass values that the user will type as strings"
                 )
+
+        if self._label_session_minutes and not self._break_minutes:
+            raise ValueError("label_session_minutes exists, but break_minutes doesn't")
+
+        if self._break_minutes and not self._label_session_minutes:
+            raise ValueError("break_minutes exists, but label_session_minutes doesn't")
+        
+        if not isinstance(self._label_session_minutes, int):
+            raise ValueError(f"label_session_minutes should be int, got {type(self._label_session_minutes)}")
+
+        if not isinstance(self._break_minutes, int):
+            raise ValueError(f"break_minutes should be int, got {type(self._break_minutes)}")
+        
+        if self._label_session_minutes > 1:
+            raise ValueError(f"label_session_minutes should be > 1, got {self._label_session_minutes}")
+
+        if self._break_minutes > 1:
+            raise ValueError(f"break_minutes should be > 1, got {self._break_minutes}")
 
     def _load_data(self) -> None:
         self._unmarked = pd.read_csv(self._unmarked_table)
@@ -228,7 +265,7 @@ class Theme:
         self._show_options()
         print("")
         if self._show_cols is not None:
-            for i, col in enumerate(self._show_cols):
+            for col in self._show_cols:
                 if pd.notna(row[col]):
                     print(f"{col}: {row[col]}")
                 else:
@@ -298,6 +335,28 @@ class Theme:
         else:
             cprint("R", "CAN'T SHOW MORE")
 
+    def _set_current_mode(self):
+        if self._label_session_minutes is None or self._break_minutes is None:
+            return
+
+        assert self._current_start is not None
+        self._current_duration_min = (time.time() - self._current_start) / 60
+
+        limit_min = (
+            self._label_session_minutes if not self._is_break else self._break_minutes
+        )
+        if self._current_duration_min >= limit_min:
+            self._is_break = True if not self._is_break else False
+            self._current_start = time.time()
+            self._current_duration_min = 0
+
+    def _break(self):
+        end_sec = self._current_start + self._break_minutes * 60
+        remaining_sec = end_sec - time.time()
+        rem_min, rem_sec = int(remaining_sec // 60), int(remaining_sec % 60)
+        cprint("R", f"BREAK for {rem_min}m {rem_sec}s")
+        input()
+
     def _write_meta(self):
         labels, counts = np.unique(self._marked[self._label_col], return_counts=True)
 
@@ -336,8 +395,17 @@ class Theme:
         if self._cache_skipped:
             os.makedirs(self._cache_folder, exist_ok=True)
 
+        self._session_start = time.time()
+        self._current_start = time.time()
+
         label = None
         for i in self._sample_generator():
+            if self._label_session_minutes is not None:
+                self._set_current_mode()
+                if self._is_break:
+                    self._break()
+                    continue
+
             if self._was_marked(i):
                 self._unmarked_indices.pop(0)
                 continue

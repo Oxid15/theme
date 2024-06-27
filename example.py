@@ -5,7 +5,7 @@ id2label = {"0": "fake", "1": "real"}
 
 t = Theme(
     id2label=id2label,
-    unmarked_table="data.csv",
+    unmarked_table="theme/data.csv",
     marked_table="markup.csv",
     id_col="Unnamed: 0",
     text_col="text",
@@ -16,6 +16,8 @@ t = Theme(
     meta_prefix={"labeling_goal": "Generate initial dataset"},
     cache_skipped=True,
     show_chars=100,
+    label_session_minutes=2,
+    break_minutes=1,
 )
 
 t.run()
