@@ -88,6 +88,15 @@ class Theme:
     cache_folder: str, optional
         Where to save cache.json file with ids of skipped texts. Used only if
         cache_skipped == True. Default is ./.theme
+    label_session_minutes: int, optional
+        The number of minutes the user is allowed to do labeling until break
+    break_minutes: int, optional
+        The number of minutes the user will not be allowed to do labeling until
+        new labeling session starts
+
+    Raises
+    ------
+    ValueError: if parameter validation changed
     """
 
     def __init__(
@@ -122,10 +131,6 @@ class Theme:
         self._to_write_meta = write_meta
         self._cache_skipped = cache_skipped
         self._cache_folder = cache_folder
-
-        if not (label_session_minutes and break_minutes):
-            raise ValueError(f"")  # TODO: error msg
-
         self._label_session_minutes = label_session_minutes
         self._break_minutes = break_minutes
 
@@ -185,6 +190,24 @@ class Theme:
                     f"{inp} in id2label is not string. Please, pass values that the user will type as strings"
                 )
 
+        if self._label_session_minutes and not self._break_minutes:
+            raise ValueError("label_session_minutes exists, but break_minutes doesn't")
+
+        if self._break_minutes and not self._label_session_minutes:
+            raise ValueError("break_minutes exists, but label_session_minutes doesn't")
+        
+        if not isinstance(self._label_session_minutes, int):
+            raise ValueError(f"label_session_minutes should be int, got {type(self._label_session_minutes)}")
+
+        if not isinstance(self._break_minutes, int):
+            raise ValueError(f"break_minutes should be int, got {type(self._break_minutes)}")
+        
+        if self._label_session_minutes > 1:
+            raise ValueError(f"label_session_minutes should be > 1, got {self._label_session_minutes}")
+
+        if self._break_minutes > 1:
+            raise ValueError(f"break_minutes should be > 1, got {self._break_minutes}")
+
     def _load_data(self) -> None:
         self._unmarked = pd.read_csv(self._unmarked_table)
         if self._label_col in self._unmarked and self._select_label is not None:
@@ -242,7 +265,7 @@ class Theme:
         self._show_options()
         print("")
         if self._show_cols is not None:
-            for i, col in enumerate(self._show_cols):
+            for col in self._show_cols:
                 if pd.notna(row[col]):
                     print(f"{col}: {row[col]}")
                 else:
@@ -313,6 +336,10 @@ class Theme:
             cprint("R", "CAN'T SHOW MORE")
 
     def _set_current_mode(self):
+        if self._label_session_minutes is None or self._break_minutes is None:
+            return
+
+        assert self._current_start is not None
         self._current_duration_min = (time.time() - self._current_start) / 60
 
         limit_min = (
