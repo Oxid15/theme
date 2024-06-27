@@ -163,6 +163,7 @@ class Theme:
         self._current_start = None
         self._current_duration_min = 0
         self._is_break = False
+        self._previous_decision = None
 
         self._check_values()
 
@@ -265,9 +266,9 @@ class Theme:
 
     def _show_menu(self, row) -> None:
         print("")
-        cprint("G", f"Marked: {len(self._marked)}")
+        cprint("G", f"Marked:   {len(self._marked)}")
         cprint("G", f"Unmarked: {len(self._unmarked)}")
-        cprint("G", f"Skipped: {len(self._skipped)}")
+        cprint("G", f"Skipped:  {len(self._skipped)}")
         self._show_options()
         print("")
         if self._show_cols is not None:
@@ -304,26 +305,43 @@ class Theme:
                 break
 
     def _write(self) -> None:
+        self._previous_decision = "write"
         self._marked.to_csv(self._marked_table, index=False)
 
+    def _write_skipped_cache(self):
+        with open(os.path.join(self._cache_folder, "cache.json"), "w") as f:
+            json.dump(self._cache, f)
+
     def _skip(self) -> None:
+        self._previous_decision = "skip"
         index = self._unmarked_indices.pop(0)
         self._skipped.append(index)
         self._chars_showed = 0
 
         if self._cache_skipped:
-            with open(os.path.join(self._cache_folder, "cache.json"), "w") as f:
-                json.dump(self._cache, f)
+            self._write_skipped_cache()
 
         cprint("R", "SKIPPED")
 
     def _back(self) -> None:
-        if len(self._marked_indices) > 0:
-            index = self._marked_indices.pop(-1)
-            self._unmarked_indices.insert(0, index)
-            self._marked = self._marked[:-1]
-            self._chars_showed = 0
-            cprint("R", "BACK")
+        if self._previous_decision == "skip":
+            if len(self._skipped) > 0:
+                index = self._skipped.pop(-1)
+                self._unmarked_indices.insert(0, index)
+                self._chars_showed = 0
+                self._write_skipped_cache()
+                cprint("R", "BACK")
+            else:
+                cprint("R", "HISTORY IS EMPTY")
+        elif self._previous_decision == "write":
+            if len(self._marked_indices) > 0:
+                index = self._marked_indices.pop(-1)
+                self._unmarked_indices.insert(0, index)
+                self._marked = self._marked[:-1]
+                self._chars_showed = 0
+                cprint("R", "BACK")
+            else:
+                cprint("R", "HISTORY IS EMPTY")
         else:
             cprint("R", "HISTORY IS EMPTY")
 
