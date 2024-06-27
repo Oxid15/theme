@@ -392,52 +392,59 @@ class Theme:
 
         The whole marked table is saved to the disk at each iteration.
         """
-        if self._cache_skipped:
-            os.makedirs(self._cache_folder, exist_ok=True)
+        try:
+            if self._cache_skipped:
+                os.makedirs(self._cache_folder, exist_ok=True)
 
-        self._session_start = time.time()
-        self._current_start = time.time()
+            self._session_start = time.time()
+            self._current_start = time.time()
 
-        label = None
-        for i in self._sample_generator():
-            if self._label_session_minutes is not None:
-                self._set_current_mode()
-                if self._is_break:
-                    self._break()
+            label = None
+            for i in self._sample_generator():
+                if self._label_session_minutes is not None:
+                    self._set_current_mode()
+                    if self._is_break:
+                        self._break()
+                        continue
+
+                if self._was_marked(i):
+                    self._unmarked_indices.pop(0)
                     continue
 
-            if self._was_marked(i):
-                self._unmarked_indices.pop(0)
-                continue
+                if self._was_skipped(i):
+                    self._unmarked_indices.pop(0)
+                    continue
 
-            if self._was_skipped(i):
-                self._unmarked_indices.pop(0)
-                continue
+                row = self._unmarked.iloc[i].copy(deep=True)
 
-            row = self._unmarked.iloc[i].copy(deep=True)
+                # If label got in previous cycle is more
+                # don't show initial parts of the text
+                if label != "more":
+                    self._show_menu(row)
+                label = self._get_user_input()
 
-            # If label got in previous cycle is more
-            # don't show initial parts of the text
-            if label != "more":
-                self._show_menu(row)
-            label = self._get_user_input()
+                if label == "skip":
+                    self._skip()
+                    continue
+                elif label == "back":
+                    self._back()
+                    continue
+                elif label == "more":
+                    self._more(row)
+                else:
+                    row[self._label_col] = self._id2label[label]
+                    self._marked = pd.concat((self._marked, pd.DataFrame([row])))
+                    self._write()
+                    if self._to_write_meta:
+                        self._write_meta()
 
-            if label == "skip":
-                self._skip()
-                continue
-            elif label == "back":
-                self._back()
-                continue
-            elif label == "more":
-                self._more(row)
-            else:
-                row[self._label_col] = self._id2label[label]
-                self._marked = pd.concat((self._marked, pd.DataFrame([row])))
-                self._write()
-                if self._to_write_meta:
-                    self._write_meta()
+                    index = self._unmarked_indices.pop(0)
+                    self._marked_indices.append(index)
 
-                index = self._unmarked_indices.pop(0)
-                self._marked_indices.append(index)
-
-        print("All marked")
+            print("All marked")
+        except KeyboardInterrupt:
+            print("\nStopped")
+            print("--------")
+            print(f"Marked:   {len(self._marked)}")
+            print(f"Unmarked: {len(self._unmarked)}")
+            print(f"Skipped:  {len(self._skipped)}")
