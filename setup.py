@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="theme-label",
-    version='0.2.1',
+    version='0.3.0',
     author='Ilia Moiseev',
     author_email='ilia.moiseev.5@yandex.ru',
     license='MIT',

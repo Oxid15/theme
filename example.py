@@ -1,13 +1,12 @@
 from theme import Theme
 
-
 id2label = {"0": "fake", "1": "real"}
 
 t = Theme(
     id2label=id2label,
-    unmarked_table="theme/data.csv",
+    unmarked_table="data.csv",
     marked_table="markup.csv",
-    id_col="Unnamed: 0",
+    id_col="id",
     text_col="text",
     label_col="label",
     show_cols=["title"],
