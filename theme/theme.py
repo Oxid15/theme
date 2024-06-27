@@ -122,7 +122,7 @@ class Theme:
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
-        self._unmarked_table = unmarked_table
+        self._unmarked_table_path = unmarked_table
         self._marked_table = marked_table
         self._label_col = label_col
         self._id_col = id_col
@@ -146,14 +146,31 @@ class Theme:
         else:
             self._show_cols = show_cols
 
-        self._initialize_cache()
-
         self._marked_history = []
         self._unmarked = pd.DataFrame()
         self._marked = pd.DataFrame()
         self._chars_showed = 0
 
-        self._load_data()
+        if isinstance(self._unmarked_table_path, pd.DataFrame):
+            # If the input table is a DataFrame it is hard to
+            # have an identifier
+            self._unmarked = self._unmarked_table_path
+        elif isinstance(self._unmarked_table_path, str):
+            self._unmarked = pd.read_csv(self._unmarked_table_path)
+        else:
+            raise ValueError(
+                f"unmarked_table can be pd.DataFrame or str, got {type(self._unmarked_table_path)}"
+            )
+
+        if self._label_col in self._unmarked and self._select_label is not None:
+            self._unmarked = self._unmarked[self._unmarked[self._label_col] == self._select_label]
+        else:
+            self._unmarked[self._label_col] = None
+
+        if os.path.exists(self._marked_table):
+            self._marked = pd.read_csv(self._marked_table)
+        else:
+            self._marked = pd.DataFrame(columns=self._unmarked.columns)
 
         self._unmarked_indices = [i for i in range(len(self._unmarked))]
         random.shuffle(self._unmarked_indices)
@@ -164,8 +181,10 @@ class Theme:
         self._current_start = None
         self._current_duration_min = 0
         self._is_break = False
+        self._session_name = "default"
 
         self._check_values()
+        self._initialize_cache()
 
     def _check_values(self) -> None:
         for inp in self._id2label:
@@ -203,9 +222,7 @@ class Theme:
             )
 
         if not isinstance(self._break_minutes, int):
-            raise ValueError(
-                f"break_minutes should be int, got {type(self._break_minutes)}"
-            )
+            raise ValueError(f"break_minutes should be int, got {type(self._break_minutes)}")
 
         if self._label_session_minutes < 1:
             raise ValueError(
@@ -215,38 +232,35 @@ class Theme:
         if self._break_minutes < 1:
             raise ValueError(f"break_minutes should be > 1, got {self._break_minutes}")
 
-    def _load_data(self) -> None:
-        self._unmarked = pd.read_csv(self._unmarked_table)
-        if self._label_col in self._unmarked and self._select_label is not None:
-            self._unmarked = self._unmarked[
-                self._unmarked[self._label_col] == self._select_label
-            ]
-        else:
-            self._unmarked[self._label_col] = None
-
-        if os.path.exists(self._marked_table):
-            self._marked = pd.read_csv(self._marked_table)
-        else:
-            self._marked = pd.DataFrame(columns=self._unmarked.columns)
-
     def _initialize_cache(self) -> None:
-        unmarked_filename = os.path.split(self._unmarked_table)[-1]
-
-        self._cache = {unmarked_filename: {"skipped": []}}
-
         if self._cache_skipped:
+            self._cache = {}
             cache_path = os.path.join(self._cache_folder, "cache.json")
             if os.path.exists(cache_path):
                 with open(cache_path, "r") as f:
                     self._cache = json.load(f)
 
-        if unmarked_filename not in self._cache:
-            self._cache[unmarked_filename] = {"skipped": []}
+            print("Initializing cache")
+            print("Cached sessions are:")
+            print({" - ".join((str(i), name)): len(self._cache[name]) for i, name in enumerate(self._cache)})
 
-        if "skipped" not in self._cache[unmarked_filename]:
-            self._cache[unmarked_filename]["skipped"] = []
+            while True:
+                self._session_name = input("Enter a number of an existing session or a name for a new one: ")
+                try:
+                    number = int(self._session_name)
+                    self._session_name = list(self._cache.keys())[number]
+                    break
+                except ValueError:
+                    break
+                except IndexError:
+                    print(f"{number} is not a valid session number. Choose one of {[i for i in range(len(self._cache))]}")
 
-        self._skipped = self._cache[unmarked_filename]["skipped"]
+            self._cache[self._session_name] = {"skipped": []}
+
+        if "skipped" not in self._cache[self._session_name]:
+            self._cache[self._session_name]["skipped"] = []
+
+        self._skipped = self._cache[self._session_name]["skipped"]
 
     def _was_marked(self, i) -> bool:
         if self._unmarked[self._id_col][i] in self._marked[self._id_col]:
@@ -365,9 +379,7 @@ class Theme:
         assert self._current_start is not None
         self._current_duration_min = (time.time() - self._current_start) / 60
 
-        limit_min = (
-            self._label_session_minutes if not self._is_break else self._break_minutes
-        )
+        limit_min = self._label_session_minutes if not self._is_break else self._break_minutes
         if self._current_duration_min >= limit_min:
             self._is_break = True if not self._is_break else False
             self._current_start = time.time()
@@ -392,9 +404,7 @@ class Theme:
         }
         meta.update(self._meta_prefix)
         try:
-            with open(
-                os.path.join(os.path.dirname(self._marked_table), "meta.json"), "w"
-            ) as f:
+            with open(os.path.join(os.path.dirname(self._marked_table), "meta.json"), "w") as f:
                 json.dump(meta, f)
         except Exception as e:
             raise RuntimeError("Error while writing metadata") from e
