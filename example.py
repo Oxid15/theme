@@ -15,6 +15,7 @@ t = Theme(
     write_meta=True,
     meta_prefix={"labeling_goal": "Generate initial dataset"},
     cache_skipped=True,
+    show_chars=100,
     label_session_minutes=2,
     break_minutes=1,
 )
