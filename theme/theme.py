@@ -1,13 +1,13 @@
-import os
 import json
+import os
+import random
 import time
+from collections import Counter
 from datetime import datetime
-from dateutil import tz
-from typing import Dict, List, Generator, Any, Optional
+from typing import Any, Dict, Generator, List, Optional
 
 import pandas as pd
-import numpy as np
-
+from dateutil import tz
 
 colors = {
     "K": "\x1B[3om",
@@ -156,7 +156,7 @@ class Theme:
         self._load_data()
 
         self._unmarked_indices = [i for i in range(len(self._unmarked))]
-        np.random.shuffle(self._unmarked_indices)
+        random.shuffle(self._unmarked_indices)
 
         self._marked_indices = []
         self._session_start = None
@@ -195,15 +195,21 @@ class Theme:
 
         if self._break_minutes and not self._label_session_minutes:
             raise ValueError("break_minutes exists, but label_session_minutes doesn't")
-        
+
         if not isinstance(self._label_session_minutes, int):
-            raise ValueError(f"label_session_minutes should be int, got {type(self._label_session_minutes)}")
+            raise ValueError(
+                f"label_session_minutes should be int, got {type(self._label_session_minutes)}"
+            )
 
         if not isinstance(self._break_minutes, int):
-            raise ValueError(f"break_minutes should be int, got {type(self._break_minutes)}")
-        
+            raise ValueError(
+                f"break_minutes should be int, got {type(self._break_minutes)}"
+            )
+
         if self._label_session_minutes < 1:
-            raise ValueError(f"label_session_minutes should be > 1, got {self._label_session_minutes}")
+            raise ValueError(
+                f"label_session_minutes should be > 1, got {self._label_session_minutes}"
+            )
 
         if self._break_minutes < 1:
             raise ValueError(f"break_minutes should be > 1, got {self._break_minutes}")
@@ -358,7 +364,9 @@ class Theme:
         input()
 
     def _write_meta(self):
-        labels, counts = np.unique(self._marked[self._label_col], return_counts=True)
+        c = Counter(self._marked[self._label_col])
+        labels = list(c.keys())
+        counts = list(c.values())
 
         meta = {
             "saved_at": str(datetime.now(tz=tz.gettz("UTC"))),
