@@ -3,7 +3,7 @@ import json
 import time
 from datetime import datetime
 from dateutil import tz
-from typing import Union, Dict, List, Generator, Any
+from typing import Dict, List, Generator, Any, Optional
 
 import pandas as pd
 import numpy as np
@@ -98,18 +98,18 @@ class Theme:
         id_col: str,
         text_col: str,
         label_col: str,
-        show_cols: Union[List[str], None] = None,
+        show_cols: Optional[List[str]] = None,
         show_chars: int = 500,
-        select_label: Union[str, None] = None,
+        select_label: Optional[str] = None,
         skip_input: str = " ",
         back_input: str = "b",
         more_input: str = "",
         write_meta: bool = False,
-        meta_prefix: Union[Dict[Any, Any], None] = None,
+        meta_prefix: Optional[Dict[Any, Any]] = None,
         cache_skipped: bool = False,
         cache_folder: str = ".theme",
-        label_session_minutes: Union[int, None] = None,
-        break_minutes: Union[int, None] = None,
+        label_session_minutes: Optional[int] = None,
+        break_minutes: Optional[int] = None,
     ) -> None:
         self._id2label = id2label
         self._text_col = text_col
