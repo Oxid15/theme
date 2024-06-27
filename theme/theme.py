@@ -397,10 +397,19 @@ class Theme:
         labels = list(c.keys())
         counts = list(c.values())
 
+        # Convert the timestamp to a datetime object
+        start = datetime.fromtimestamp(self._session_start, tz=tz.gettz("UTC"))
+        end = datetime.now(tz=tz.gettz("UTC"))
+
+        # Format the datetime object as a string
+        start = start.strftime('%Y-%m-%d %H:%M:%S')
+
         meta = {
-            "saved_at": str(datetime.now(tz=tz.gettz("UTC"))),
+            "started_at": start,
+            "saved_at": str(end),
             "size": len(self._marked),
             "labels": {l: int(c) for l, c in zip(labels, counts)},
+            "cache_session": self._session_name
         }
         meta.update(self._meta_prefix)
         try:
