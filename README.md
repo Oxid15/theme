@@ -1,5 +1,5 @@
 # theme
-![ver](https://img.shields.io/github/v/release/oxid15/theme?style=plastic)  
+![ver](https://img.shields.io/github/v/release/oxid15/theme?style=plastic) [![DOI](https://zenodo.org/badge/578688999.svg)](https://zenodo.org/doi/10.5281/zenodo.12591749)  
     
 Minimalistic CLI labeling tool for text classification
 
@@ -75,6 +75,21 @@ and not too loaded with dependencies.
 
 ## Versions
 This project uses Semantic Versioning - https://semver.org/
+
+## Cite
+If you used `Theme` for your project, please cite with:
+```bibtex
+@software{ilia_moiseev_2024_12591750,
+  author       = {Ilia Moiseev},
+  title        = {Theme: Minimalistic CLI labeling tool for text classification},
+  month        = jun,
+  year         = 2024,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.12591750},
+  url          = {https://doi.org/10.5281/zenodo.12591750}
+}
+```
+
 
 ## Changelog
 
