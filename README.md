@@ -1,11 +1,11 @@
 # theme
 ![ver](https://img.shields.io/github/v/release/oxid15/theme?style=plastic)  
     
-Simple CLI labeling tool for text classification
+Minimalistic CLI labeling tool for text classification
 
-It allows to rapidly acquire manually labeled texts without the need to setup any large-scale labeling solution.
+It allows for the rapid labeling of manually labeled texts without the need to set up any large-scale labeling solution.
 
-With the least requirements possible one can get an initial dataset to train text classification model.
+With the fewest requirements possible, one can get an initial dataset to train a text classification model.
 
 ## Installation
 ```bash
@@ -13,8 +13,8 @@ pip install theme-label
 ```
 
 ## Usage
-To use `theme` you will need:
-- .csv table with at least *two* columns: the one with texts and their id's
+To use `Theme` you will need:
+- Path to `.csv` or `pandas.DataFrame` with at least *two* columns: the one with texts and their id's
 - The following script
 
 ```python
@@ -40,7 +40,7 @@ t = Theme(
     id_col='id', # The name of id column
 )
 
-# Here labeling session is run
+# Here is how to start labeling session
 t.run()
 ```
 
@@ -56,11 +56,11 @@ If entered label is *b*, then previous marked text is prompted instead of curren
 If entered label is *empty* the user is provided with another portion of the same text.
 If the label is not in the `id2label` the user is prompted to enter the label again.
 
-Commands can be reassigned using parameters, see docstring.
+Commands can be reassigned using parameters, see [docstring in the file](theme/theme.py).
 
 
 ## Advanced usage
-See `theme/theme.py` for documentation.
+See [theme/theme.py](theme/theme.py) for documentation.
 
 ## Contributing
 
