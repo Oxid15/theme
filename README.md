@@ -80,6 +80,14 @@ This project uses Semantic Versioning - https://semver.org/
 
 Here is the history of changes in `Theme`
 
+### v0.3.0
+- Session time tracking
+- Go back to skipped texts too
+- Removes `numpy` from direct dependencies
+- Clean exit on `Ctrl+C`
+- Select session cache before the start
+- More fields in metadata
+
 ### v0.2.1
 - Fixed missing last characters
 - Informative error message
