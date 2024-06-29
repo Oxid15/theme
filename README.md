@@ -3,7 +3,7 @@
     
 Minimalistic CLI labeling tool for text classification
 
-It allows for the rapid labeling of manually labeled texts without the need to set up any large-scale labeling solution.
+It allows for the rapid acquisition of manually labeled texts without the need to set up any large-scale labeling solution.
 
 With the fewest requirements possible, one can get an initial dataset to train a text classification model.
 
