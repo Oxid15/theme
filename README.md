@@ -34,7 +34,7 @@ t = Theme(
     id2label=id2label,
     text_col='text', # Name of the column with texts
     show_cols=['title'], # Additional fields to show during labeling
-    unmarked_table='data.csv', # Our input table
+    unmarked_table='data.csv', # Our input table, can be pandas DataFrame
     marked_table='markup.csv', # Output table will have same columns with additional one for label
     label_col='label', # The name of additional column
     id_col='id', # The name of id column
@@ -61,3 +61,49 @@ Commands can be reassigned using parameters, see docstring.
 
 ## Advanced usage
 See `theme/theme.py` for documentation.
+
+## Contributing
+
+All contributions are welcome!  
+If you have any questions or feature requests feel free to open issues or submit PR's.  
+
+When adding functionality keep in mind that `Theme` is a minimalistic tool that should be kept simple
+and not too loaded with dependencies.
+
+## License
+[MIT License](LICENSE)
+
+## Versions
+This project uses Semantic Versioning - https://semver.org/
+
+## Changelog
+
+Here is the history of changes in `Theme`
+
+### v0.3.0
+- Session time tracking
+- Go back to skipped texts too
+- Removes `numpy` from direct dependencies
+- Clean exit on `Ctrl+C`
+- Select session cache before the start
+- More fields in metadata
+
+### v0.2.1
+- Fixed missing last characters
+- Informative error message
+- Check if ids in id2label are strings
+
+### v0.2.0
+
+- Command that allows getting another page of text
+- Command keys are now customizable
+- Skipped ids are cached on disk
+- Write metadata about labeling
+- Bugs fixed
+
+### v0.1.0
+
+- First release of `Theme`
+- Fixed size of text
+- Simple labeling loop
+- Mark, skip or go back while labeling
